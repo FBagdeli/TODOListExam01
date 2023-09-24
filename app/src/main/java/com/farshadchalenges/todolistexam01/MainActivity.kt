@@ -7,6 +7,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -21,6 +22,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -90,6 +93,12 @@ fun MainPage() {
     }
     val clickedItemIndex = remember {
         mutableStateOf(0)
+    }
+    val clickedItem = remember {
+        mutableStateOf("")
+    }
+    val textDialogStatus = remember {
+        mutableStateOf(false)
     }
 
     Column(
@@ -177,12 +186,18 @@ fun MainPage() {
                             fontFamily = FontFamily.SansSerif,
                             maxLines = 2,
                             overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.width(250.dp)
+                            modifier = Modifier
+                                .width(250.dp)
+                                .clickable {
+                                    textDialogStatus.value = true
+                                    clickedItem.value = item
+                                }
                         )
                         Row(modifier = Modifier.width(80.dp)) {
                             IconButton(onClick = {
                                 editDialogStatus.value = true
                                 clickedItemIndex.value = index
+                                clickedItem.value = item
                             }) {
                                 Icon(
                                     Icons.Filled.Edit,
@@ -234,7 +249,7 @@ fun MainPage() {
                             "You delete it", Toast.LENGTH_SHORT
                         ).show()
                     }) {
-                        Text(text = "Yes")
+                        Text(text = "YES")
                     }
                 },
 
@@ -246,7 +261,83 @@ fun MainPage() {
                             "You Didn't delete it", Toast.LENGTH_SHORT
                         ).show()
                     }) {
+                        Text(text = "NO")
+                    }
+                }
+            )
+        }
+        if (editDialogStatus.value) {
+
+            AlertDialog(
+                onDismissRequest = { editDialogStatus.value = false },
+                title = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(text = "Edit")
+                        Icon(
+                            Icons.Filled.Edit,
+                            contentDescription = "",
+                            tint = Color.White
+                        )
+                    }
+                },
+
+                text = {
+                    TextField(value = clickedItem.value, onValueChange = { clickedItem.value = it })
+                },
+
+                confirmButton = {
+                    TextButton(onClick = {
+                        itemList[clickedItemIndex.value] = clickedItem.value
+                        writeData(itemList, myContext)
+                        editDialogStatus.value = false
+                        Toast.makeText(
+                            myContext,
+                            "You Update it", Toast.LENGTH_SHORT
+                        ).show()
+                    }) {
+
+                        Text(text = "Yes")
+                    }
+                },
+
+                dismissButton = {
+                    TextButton(onClick = {
+                        editDialogStatus.value = false
+                        Toast.makeText(
+                            myContext,
+                            "You Didn't Update it", Toast.LENGTH_SHORT
+                        ).show()
+                    }) {
                         Text(text = "No")
+                    }
+                }
+            )
+        }
+        if (textDialogStatus.value) {
+
+            AlertDialog(
+                onDismissRequest = { textDialogStatus.value = false },
+                title = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(text = "Text")
+                        Icon(
+                            Icons.Filled.Info,
+                            contentDescription = "",
+                            tint = Color(0xFFC5AB5C)
+                        )
+                    }
+                },
+
+                text = {
+                   Text(text = clickedItem.value, fontSize = 16.sp)
+                },
+
+                confirmButton = {
+                    TextButton(onClick = {
+                        textDialogStatus.value = false
+                    }) {
+
+                        Text(text = "OK")
                     }
                 }
             )
