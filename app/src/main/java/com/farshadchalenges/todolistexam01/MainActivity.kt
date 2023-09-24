@@ -21,6 +21,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -30,6 +32,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
@@ -79,6 +82,15 @@ fun MainPage() {
         mutableStateOf("")
     }
     val itemList = readData(myContext)
+    val editDialogStatus = remember {
+        mutableStateOf(false)
+    }
+    val deleteDialogStatus = remember {
+        mutableStateOf(false)
+    }
+    val clickedItemIndex = remember {
+        mutableStateOf(0)
+    }
 
     Column(
         modifier = Modifier
@@ -117,12 +129,12 @@ fun MainPage() {
             Spacer(modifier = Modifier.padding(3.dp))
             Button(
                 onClick = {
-                          if(userText.value.isNotEmpty()){
-                              itemList.add(userText.value)
-                              writeData(itemList,myContext)
-                              focusManager.clearFocus()
-                              userText.value = ""
-                          }
+                    if (userText.value.isNotEmpty()) {
+                        itemList.add(userText.value)
+                        writeData(itemList, myContext)
+                        focusManager.clearFocus()
+                        userText.value = ""
+                    }
                 },
                 shape = RectangleShape,
                 modifier = Modifier
@@ -168,14 +180,20 @@ fun MainPage() {
                             modifier = Modifier.width(250.dp)
                         )
                         Row(modifier = Modifier.width(80.dp)) {
-                            IconButton(onClick = { /*TODO*/ }) {
+                            IconButton(onClick = {
+                                editDialogStatus.value = true
+                                clickedItemIndex.value = index
+                            }) {
                                 Icon(
                                     Icons.Filled.Edit,
                                     contentDescription = "Edit",
                                     tint = Color.White
                                 )
                             }
-                            IconButton(onClick = { /*TODO*/ }) {
+                            IconButton(onClick = {
+                                deleteDialogStatus.value = true
+                                clickedItemIndex.value = index
+                            }) {
                                 Icon(
                                     Icons.Filled.Delete,
                                     contentDescription = "Delete",
@@ -186,6 +204,51 @@ fun MainPage() {
                     }
                 }
             }
+            )
+        }
+        if (deleteDialogStatus.value) {
+
+            AlertDialog(
+                onDismissRequest = { deleteDialogStatus.value = false },
+                title = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(text = "Delete")
+                        Icon(
+                            Icons.Filled.Warning,
+                            contentDescription = "",
+                            tint = Color(0xFFC5AB5C)
+                        )
+                    }
+                },
+                text = {
+                    Text(text = "Do you want to delete ?", fontSize = 16.sp)
+                },
+
+                confirmButton = {
+                    TextButton(onClick = {
+                        itemList.removeAt(clickedItemIndex.value)
+                        writeData(itemList, myContext)
+                        deleteDialogStatus.value = false
+                        Toast.makeText(
+                            myContext,
+                            "You delete it", Toast.LENGTH_SHORT
+                        ).show()
+                    }) {
+                        Text(text = "Yes")
+                    }
+                },
+
+                dismissButton = {
+                    TextButton(onClick = {
+                        deleteDialogStatus.value = false
+                        Toast.makeText(
+                            myContext,
+                            "You Didn't delete it", Toast.LENGTH_SHORT
+                        ).show()
+                    }) {
+                        Text(text = "No")
+                    }
+                }
             )
         }
     }
